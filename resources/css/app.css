@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+
+
+@font-face {
+  font-family: KalamehWeb;
+  font-style: normal;
+  font-weight: normal;
+  src: url('fonts/kalameh/woff2/KalamehWebFaNum-Regular.woff2') format('woff2'),
+    url('fonts/kalameh/woff/KalamehWebFaNum-Regular.woff') format('woff');
+}
+
+@font-face {
+  font-family: KalamehWeb;
+  font-style: normal;
+  font-weight: bold;
+  src: url('fonts/kalameh/woff2/KalamehWebFaNum-Medium.woff2') format('woff2'),
+    url('fonts/kalameh/woff/KalamehWebFaNum-Medium.woff') format('woff');
+}
+
+body {
+  font-family: KalamehWeb;
+}
