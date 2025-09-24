@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Flow;
 use App\Models\Workspace;
+use Exception;
 use Illuminate\Support\Facades\Validator;
 
 class WorkspaceController extends Controller
 {
-    
+
     public function index()
     {
 
-        $rows = Workspace::where("user_id", auth()->id())->paginate($this->perPage);
+        $rows = Workspace::with("flows")->where("user_id", auth()->id())->paginate($this->perPage);
 
         return response()->success($rows);
     }
@@ -32,9 +34,15 @@ class WorkspaceController extends Controller
 
         $data["user_id"] = auth()->id();
 
-        $row = Workspace::create($data);
+        try {
+            
+            $row = Workspace::create($data);
+            
+            return response()->success([$row]);
 
-        return response()->success([$row]);
+        } catch (Exception $e) {
+            return response()->error("خطا در ذخیره اطلاعات فرآیند");
+        }
     }
 
 
@@ -53,7 +61,17 @@ class WorkspaceController extends Controller
 
         $data["user_id"] = auth()->id();
 
-        $row = Workspace::find($id)->update($data);
+        $row = Workspace::find($id);
+
+        if (!isset($row->id)) {
+            return response()->error("پوشه مورد نظر یافت نشد");
+        }
+
+        try {
+            $row->update($data);
+        } catch (Exception $e) {
+            return response()->error("خطا در ذخیره اطلاعات فرآیند");
+        }
 
         return response()->success([$row]);
     }
@@ -61,12 +79,36 @@ class WorkspaceController extends Controller
     public function remove($id)
     {
 
-        Workspace::find($id)->delete();
+        $row = Workspace::find($id);
 
-        return response()->success([
-            [
-                "deleted" => true
-            ]
-        ]);
+        if (!isset($row->id)) {
+            return response()->error("پوشه مورد نظر یافت نشد");
+        }
+
+        \DB::beginTransaction();
+
+        try {
+
+
+            Flow::where("workspace_id", $row->id)->update([
+                "workspace_id" => 0
+            ]);
+
+            $row->delete();
+
+            \DB::commit();
+
+            return response()->success([
+                [
+                    "deleted" => true
+                ]
+            ]);
+            
+        } catch (Exception $e) {
+
+            \DB::rollback();
+
+            return response()->error("خطا در حذف اطلاعات پوشه‌ها");
+        }
     }
 }

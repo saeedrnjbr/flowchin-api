@@ -145,6 +145,7 @@ return [
 
     'attributes'           => [
         'mobile'              => 'موبایل',
+        'icon'              => 'لوگو',
         'name'              => 'نام',
         'username'              => 'نام کاربری',
         'password'              => 'رمزعبور',

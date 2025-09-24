@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('flow_nodes', function (Blueprint $table) {
+        Schema::create('elements', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("flow_id")->constrained("flows");
-            $table->foreignId("integration_id")->constrained("integrations");
-            $table->text("params")->nullable();
+            $table->string("name");
+            $table->string("type");
+            $table->string("icon")->nullable();
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('flow_nodes');
+        Schema::dropIfExists('elements');
     }
 };

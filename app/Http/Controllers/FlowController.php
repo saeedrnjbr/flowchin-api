@@ -2,24 +2,53 @@
 
 namespace App\Http\Controllers;
 
+use App\Helper\Uploader;
 use App\Models\Flow;
 use App\Models\FlowNode;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Validator;
-use Vinkla\Hashids\Facades\Hashids;
 
 class FlowController extends Controller
 {
 
     public function index()
     {
-
-        $rows = Flow::with('nodes.integration')->where("user_id", auth()->id())->paginate($this->perPage);
-
+        $rows = Flow::with(['nodes.integration', 'workspace'])->where("user_id", auth()->id())->paginate($this->perPage);
         return response()->success($rows);
     }
 
+    public function remove($unique_id)
+    {
+
+        $flow = Flow::where("unique_id", $unique_id)->first();
+
+        if (!isset($flow->id)) {
+            return response()->error("فرآیند مورد نظر یافت نشد");
+        }
+
+        \DB::beginTransaction();
+
+        try {
+
+            FlowNode::where("flow_id", $flow->id)->delete();
+
+            $flow->delete();
+
+            \DB::commit();
+
+            return response()->success([
+                [
+                    "deleted" => true
+                ]
+            ]);
+        } catch (Exception $e) {
+
+            \DB::rollback();
+
+            return response()->error("خطا در حذف اطلاعات فرآیند");
+        }
+    }
 
 
     public function store()
@@ -54,14 +83,12 @@ class FlowController extends Controller
 
             foreach ($nodes as $node) {
 
-                $meta = $node["data"]["meta"];
-
                 array_push($flowNodes, [
                     "flow_id" => $row->id,
                     "created_at" => Carbon::now(),
                     "updated_at" => Carbon::now(),
-                    "integration_id" => $meta["id"],
-                    "params" => !empty($node["data"]["params"]) ? json_encode($node["data"]["params"]) : "",
+                    "integration_id" => $node["data"]["meta"],
+                    "params" => !empty($node["data"]["params"]) ? json_encode($node["data"]["params"]) : ""
                 ]);
             }
 
@@ -87,39 +114,149 @@ class FlowController extends Controller
     }
 
 
-    public function update($id)
+    public function copy($unique_id)
     {
-        $validator = Validator::make(request()->all(), [
-            'name' => 'required',
-            'pattern' => 'required',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->error($validator->errors()->first());
+        $flow = Flow::with("nodes")->where("unique_id", $unique_id)->first();
+
+        if (!isset($flow->id)) {
+            return response()->error("فرآیند مورد نظر یافت نشد");
         }
+
+        \DB::beginTransaction();
+
+        try {
+
+            $row = $flow->replicate();
+
+            $row->unique_id = \Str::uuid();
+
+            $row->save();
+
+            if (!empty($flow->nodes)) {
+
+                $flowNodes = [];
+
+                foreach ($flow->nodes as $node) {
+                    array_push($flowNodes, [
+                        "flow_id" => $row->id,
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                        "integration_id" => $node->integration_id,
+                        "params" => $node->params
+                    ]);
+                }
+
+                FlowNode::insert($flowNodes);
+            }
+
+            \DB::commit();
+
+            return response()->success([$row]);
+        } catch (Exception $e) {
+
+            \DB::rollback();
+
+            return response()->error("خطا در ذخیره اطلاعات فرآیند");
+        }
+
+        return response()->success($flows);
+    }
+
+    public function workspace($id)
+    {
 
         $data = request()->all();
 
         $row = Flow::where("unique_id", $id)->first();
 
-        $row->update($data);
-
-        $nodes = $data["pattern"]["nodes"];
-
-        foreach ($nodes as $node) {
-
-            $meta = $node["data"]["meta"];
-
-            FlowNode::where([
-                "flow_id" => $row->id,
-                "integration_id" => $meta["id"],
-            ])->update([
-                "params" => !empty($node["data"]["params"]) ? json_encode($node["data"]["params"]) : ""
-            ]);
+        if (!isset($row->id)) {
+            return response()->error("فرآیند مورد نظر یافت نشد");
         }
 
-        $flow = Flow::find($row->id);
+        $row->update($data);
 
-        return response()->success([$flow]);
+        return response()->success([$row]);
+    }
+
+    public function update($id)
+    {
+
+        $data = request()->all();
+
+        $row = Flow::where("unique_id", $id)->first();
+
+        if (!isset($row->id)) {
+            return response()->error("فرآیند مورد نظر یافت نشد");
+        }
+
+        if (empty($data["has_marketplace"])) {
+            $data["price"] = 0;
+        }
+
+        if (!empty($data["has_marketplace"]) && empty($data["price"])) {
+            return response()->error("لطفا قیمت محصول مورد نظر را وارد نمایید");
+        }
+
+        if (!empty($data["discount"]) && $data["discount"] > 100) {
+            return response()->error("درصد تخفیف نمی‌تواند از 100 درصد بیشتر باشد");
+        }
+
+        if (!empty($data["discount"]) && $data["discount"] < 0) {
+            return response()->error("درصد تخفیف نمی‌تواند از صفر درصد کمتر باشد");
+        }
+
+        \DB::beginTransaction();
+
+        try {
+
+            if (!empty(request()->file("icon"))) {
+
+                $validator = Validator::make(request()->all(), [
+                    'icon' => 'max:1024|mimes:jpeg,png,jpg',
+                ]);
+
+                if ($validator->fails()) {
+                    return response()->error($validator->errors()->first());
+                }
+
+                $data["icon"] = Uploader::_()->uploadImage($data["icon"]);
+            }
+            
+            if (empty(request()->file("icon"))) {
+                unset($data["icon"]);
+            }
+
+            $row->update($data);
+
+            if (!empty($data["pattern"])) {
+
+                $nodes = $data["pattern"]["nodes"];
+
+                FlowNode::where(["flow_id" => $row->id])->delete();
+
+                foreach ($nodes as $node) {
+
+                    FlowNode::create([
+                        "flow_id" => $row->id,
+                        "created_at" => Carbon::now(),
+                        "updated_at" => Carbon::now(),
+                        "integration_id" => $node["data"]["meta"],
+                        "params" => !empty($node["data"]["params"]) ? json_encode($node["data"]["params"]) : ""
+                    ]);
+                }
+            }
+
+            \DB::commit();
+
+            $flow = Flow::find($row->id);
+
+            return response()->success([$flow]);
+        } catch (Exception $e) {
+
+            \DB::rollback();
+
+            return response()->error("خطا در ذخیره اطلاعات فرآیند");
+        }
     }
 }

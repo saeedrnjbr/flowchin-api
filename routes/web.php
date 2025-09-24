@@ -3,10 +3,11 @@
 use App\Http\Controllers\admin\AdminController;
 use App\Http\Controllers\admin\IntegrationController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ElementController;
 use App\Http\Controllers\GoogleController;
 use Illuminate\Support\Facades\Route;
 
-Route::get("/", function(){
+Route::get("/", function () {
     return response()->json([
         "result" => "Flowchin Api Services v1.0.0"
     ]);
@@ -25,6 +26,16 @@ Route::group(["prefix" => "admin"], function () {
         Route::get("/delete/{id}", [IntegrationController::class, "remove"])->name("integrations.remove");
         Route::post("/", [IntegrationController::class, "store"])->name("integrations.store");
         Route::post("/{id}", [IntegrationController::class, "update"])->name("integrations.update");
+    });
+
+
+    Route::group(["prefix" => "elements"], function () {
+        Route::get("/", [ElementController::class, "index"])->name("elements.index");
+        Route::get("/create", [ElementController::class, "create"])->name("elements.create");
+        Route::get("/create/{id}", [ElementController::class, "show"])->name("elements.show");
+        Route::get("/delete/{id}", [ElementController::class, "remove"])->name("elements.remove");
+        Route::post("/", [ElementController::class, "store"])->name("elements.store");
+        Route::post("/{id}", [ElementController::class, "update"])->name("elements.update");
     });
 });
 

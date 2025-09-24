@@ -14,4 +14,14 @@ class Workspace extends Model
         "description",
         "user_id"
     ];
+
+    public function setNameAttribute($value)
+    {
+        $this->attributes["name"] = htmlspecialchars(strip_tags($value));
+    }
+
+    public function flows()
+    {
+        return $this->hasMany(Flow::class);
+    }
 }

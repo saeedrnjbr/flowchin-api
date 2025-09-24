@@ -14,9 +14,9 @@ class IntegrationController extends Controller
     {
 
         $rows = Integration::with("parent")->orderByRaw("id");
-        
-        if(!empty(request("name"))){
-            $rows->where("name", "like", "%". request("name")."%");
+
+        if (!empty(request("name"))) {
+            $rows->where("name", "like", "%" . request("name") . "%");
         }
 
         $rows = $rows->paginate($this->perPage);
@@ -47,7 +47,7 @@ class IntegrationController extends Controller
     public function store()
     {
 
-         request()->validate([
+        request()->validate([
             'name' => 'required',
             'description' => 'required',
             'icon' => 'required',
@@ -77,7 +77,7 @@ class IntegrationController extends Controller
 
         if (!empty(request()->file("icon"))) {
             $data["icon"] = Uploader::_()->uploadImage($data["icon"]);
-        }else{
+        } else {
             unset($data["icon"]);
         }
 
@@ -99,5 +99,13 @@ class IntegrationController extends Controller
     {
         $trees = Integration::with("parent")->orderByRaw("id")->get()->toArray();
         return response()->success($this->buildTree($trees));
+    }
+
+    public function interface() {
+
+        $interface = Integration::where("slug", "interface")->with("parent")->orderByRaw("id")->get()->toArray();
+
+        return response()->success($interface);
+
     }
 }

@@ -44,18 +44,19 @@ class UserController extends Controller
 
         $otp->code = $code;
 
-        $otp->expired_at = Carbon::now()->addMinutes(2)->getTimestamp();
+        $otp->expired_at = Carbon::now()->addMinutes(3)->getTimestamp();
 
         $otp->user_id = $user->id;
 
         $otp->save();
 
         Redis::set("user" . $user->id, $code);
-        Redis::expire("user" . $user->id, $otp->expired_at);
+        Redis::expire("user" . $user->id, 180);
 
         return response()->success([
             [
-                "code" => $code
+                "code" => $code,
+                "expired_at" => $otp->expired_at
             ]
         ]);
     }
@@ -100,6 +101,4 @@ class UserController extends Controller
     {
         return response()->success(auth()->user()->toArray());
     }
-
-   
 }
