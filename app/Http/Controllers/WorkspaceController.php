@@ -22,9 +22,15 @@ class WorkspaceController extends Controller
     public function store()
     {
 
-        $validator = Validator::make(request()->all(), [
+        $rules = [
             'name' => 'required',
-        ]);
+        ];
+
+        if (!empty(request("description"))) {
+            $rules["description"] = "max:50";
+        }
+
+        $validator = Validator::make(request()->all(), $rules);
 
         if ($validator->fails()) {
             return response()->error($validator->errors()->first());
@@ -35,11 +41,10 @@ class WorkspaceController extends Controller
         $data["user_id"] = auth()->id();
 
         try {
-            
-            $row = Workspace::create($data);
-            
-            return response()->success([$row]);
 
+            $row = Workspace::create($data);
+
+            return response()->success([$row]);
         } catch (Exception $e) {
             return response()->error("خطا در ذخیره اطلاعات فرآیند");
         }
@@ -49,9 +54,16 @@ class WorkspaceController extends Controller
 
     public function update($id)
     {
-        $validator = Validator::make(request()->all(), [
+
+        $rules = [
             'name' => 'required',
-        ]);
+        ];
+
+        if (!empty(request("description"))) {
+            $rules["description"] = "max:50";
+        }
+
+        $validator = Validator::make(request()->all(), $rules);
 
         if ($validator->fails()) {
             return response()->error($validator->errors()->first());
@@ -103,7 +115,6 @@ class WorkspaceController extends Controller
                     "deleted" => true
                 ]
             ]);
-            
         } catch (Exception $e) {
 
             \DB::rollback();

@@ -210,23 +210,6 @@ class FlowController extends Controller
 
         try {
 
-            if (!empty(request()->file("icon"))) {
-
-                $validator = Validator::make(request()->all(), [
-                    'icon' => 'max:1024|mimes:jpeg,png,jpg',
-                ]);
-
-                if ($validator->fails()) {
-                    return response()->error($validator->errors()->first());
-                }
-
-                $data["icon"] = Uploader::_()->uploadImage($data["icon"]);
-            }
-            
-            if (empty(request()->file("icon"))) {
-                unset($data["icon"]);
-            }
-
             $row->update($data);
 
             if (!empty($data["pattern"])) {
@@ -252,6 +235,7 @@ class FlowController extends Controller
             $flow = Flow::find($row->id);
 
             return response()->success([$flow]);
+            
         } catch (Exception $e) {
 
             \DB::rollback();

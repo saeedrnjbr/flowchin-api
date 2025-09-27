@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\admin\IntegrationController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ElementController;
 use App\Http\Controllers\FlowController;
 use App\Http\Controllers\UserController;
@@ -24,7 +25,7 @@ Route::group(["prefix" => "flows", "middleware" => 'auth:sanctum'], function () 
     Route::get("/", [FlowController::class, "index"]);
     Route::post("/", [FlowController::class, "store"]);
     Route::get("/{unique_id}", [FlowController::class, "nodes"]);
-    Route::get("/copy/{unique_id}", [FlowController::class, "copy"]);   
+    Route::get("/copy/{unique_id}", [FlowController::class, "copy"]);
     Route::get("/delete/{unique_id}", [FlowController::class, "remove"]);
     Route::post("/workspace/{unique_id}", [FlowController::class, "workspace"]);
     Route::post("/{unique_id}", [FlowController::class, "update"]);
@@ -35,11 +36,13 @@ Route::group(["prefix" => "integrations"], function () {
     Route::get("/", [IntegrationController::class, "integrations"]);
     Route::get("/interface", [IntegrationController::class, "interface"]);
 });
- 
+
 Route::group(["prefix" => "elements"], function () {
     Route::get("/", [ElementController::class, "elements"]);
 });
- 
+
+Route::group(["prefix" => "uploads"], function () {
+    Route::post("/", [DashboardController::class, "uploads"]);
+});
 
 Route::get('/user', [UserController::class, "user"])->middleware('auth:sanctum');
-

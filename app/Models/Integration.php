@@ -9,7 +9,7 @@ class Integration extends Model
 {
     use SoftDeletes;
 
-    protected $appends = ["icon_url", "colors"];
+    protected $appends = ["icon_url", "colors", "unique_id"];
 
     protected $fillable = [
         "name",
@@ -29,6 +29,11 @@ class Integration extends Model
     public function getIconUrlAttribute()
     {
         return implode("/uploads/", [url("/"), $this->icon]);
+    }
+
+    public function getUniqueIdAttribute()
+    {
+        return uniqid();
     }
 
     public function getBackgroundAttribute()
