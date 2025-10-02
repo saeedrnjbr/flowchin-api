@@ -15,6 +15,7 @@ Route::get("/", function () {
 
 
 Route::group(["prefix" => "admin"], function () {
+
     Route::get("/", [AdminController::class, "login"])->name("login");
     Route::post("/", [AdminController::class, "auth"])->name("auth");
     Route::get("/dashboard", [DashboardController::class, "index"])->name("dashboard");

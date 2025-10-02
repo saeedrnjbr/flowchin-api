@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Flow;
 use App\Models\Workspace;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class WorkspaceController extends Controller
@@ -97,7 +98,7 @@ class WorkspaceController extends Controller
             return response()->error("پوشه مورد نظر یافت نشد");
         }
 
-        \DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
 
@@ -108,7 +109,7 @@ class WorkspaceController extends Controller
 
             $row->delete();
 
-            \DB::commit();
+            DB::commit();
 
             return response()->success([
                 [
@@ -117,7 +118,7 @@ class WorkspaceController extends Controller
             ]);
         } catch (Exception $e) {
 
-            \DB::rollback();
+            DB::rollback();
 
             return response()->error("خطا در حذف اطلاعات پوشه‌ها");
         }

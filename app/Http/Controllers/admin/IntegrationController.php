@@ -19,6 +19,11 @@ class IntegrationController extends Controller
             $rows->where("name", "like", "%" . request("name") . "%");
         }
 
+         if (!empty(request("slug"))) {
+            $rows->where("slug", "like", "%" . request("slug") . "%");
+        }
+
+
         $rows = $rows->paginate($this->perPage);
 
         return view("admin.integrations.index", compact("rows"));

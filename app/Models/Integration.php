@@ -18,6 +18,8 @@ class Integration extends Model
         "loop",
         "slug",
         "icon",
+        "output",
+        "output_params",
         "parent_id",
         "type",
         "input",

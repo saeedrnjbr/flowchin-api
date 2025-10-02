@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Helper\Uploader;
 use App\Models\Flow;
 use App\Models\FlowNode;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class FlowController extends Controller
@@ -27,7 +27,7 @@ class FlowController extends Controller
             return response()->error("فرآیند مورد نظر یافت نشد");
         }
 
-        \DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
 
@@ -35,7 +35,7 @@ class FlowController extends Controller
 
             $flow->delete();
 
-            \DB::commit();
+            DB::commit();
 
             return response()->success([
                 [
@@ -44,7 +44,7 @@ class FlowController extends Controller
             ]);
         } catch (Exception $e) {
 
-            \DB::rollback();
+            DB::rollback();
 
             return response()->error("خطا در حذف اطلاعات فرآیند");
         }
@@ -73,7 +73,7 @@ class FlowController extends Controller
 
         $data["user_id"] = auth()->id();
 
-        \DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
 
@@ -94,12 +94,12 @@ class FlowController extends Controller
 
             FlowNode::insert($flowNodes);
 
-            \DB::commit();
+            DB::commit();
 
             return response()->success([$row]);
         } catch (Exception $e) {
 
-            \DB::rollback();
+            DB::rollback();
 
             return response()->error("خطا در ذخیره اطلاعات فرآیند");
         }
@@ -123,7 +123,7 @@ class FlowController extends Controller
             return response()->error("فرآیند مورد نظر یافت نشد");
         }
 
-        \DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
 
@@ -150,12 +150,13 @@ class FlowController extends Controller
                 FlowNode::insert($flowNodes);
             }
 
-            \DB::commit();
+            DB::commit();
 
             return response()->success([$row]);
+
         } catch (Exception $e) {
 
-            \DB::rollback();
+            DB::rollback();
 
             return response()->error("خطا در ذخیره اطلاعات فرآیند");
         }
@@ -206,7 +207,7 @@ class FlowController extends Controller
             return response()->error("درصد تخفیف نمی‌تواند از صفر درصد کمتر باشد");
         }
 
-        \DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
 
@@ -230,15 +231,15 @@ class FlowController extends Controller
                 }
             }
 
-            \DB::commit();
+            DB::commit();
 
             $flow = Flow::find($row->id);
 
             return response()->success([$flow]);
-            
+
         } catch (Exception $e) {
 
-            \DB::rollback();
+            DB::rollback();
 
             return response()->error("خطا در ذخیره اطلاعات فرآیند");
         }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string("description");
             $table->string("icon");
             $table->string("slug")->nullable();
+            $table->string("output_params")->nullable();
             $table->text("background")->nullable();
             $table->integer("parent_id")->default(0);
             $table->enum("type", ["tools", "core"])->default("tools");

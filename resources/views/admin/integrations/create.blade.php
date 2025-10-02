@@ -36,6 +36,17 @@
             </div>
 
             <div>
+                <label for="output_params" class="block text-base font-medium text-gray-900">خروجی</label>
+                <div class="mt-2">
+                    <input id="output_params" value="{{ !empty($row) ? $row->output_params : '' }}" type="text" name="output_params"
+                        autocomplete="output_params"
+                        class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-600 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                </div>
+            </div>
+
+
+
+            <div>
                 <label for="background" class="block text-base font-medium text-gray-900">رنگ پس‌زمینه</label>
                 <div class="mt-2">
                     <input id="background" value="{{ !empty($row) ? $row->background : '' }}" type="text"
